@@ -1,9 +1,14 @@
 package com.github.chagall.notificationlistenerexample;
 
+import android.app.Notification;
 import android.content.Intent;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+
+import androidx.core.app.NotificationCompat;
+
+import java.util.List;
 
 /**
  * MIT License
@@ -34,6 +39,7 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         public static final String FACEBOOK_PACK_NAME = "com.facebook.katana";
         public static final String FACEBOOK_MESSENGER_PACK_NAME = "com.facebook.orca";
         public static final String WHATSAPP_PACK_NAME = "com.whatsapp";
+        public static final String TELEGRAM_PACK_NAME = "org.telegram.messenger";
         public static final String INSTAGRAM_PACK_NAME = "com.instagram.android";
     }
 
@@ -45,7 +51,8 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         public static final int FACEBOOK_CODE = 1;
         public static final int WHATSAPP_CODE = 2;
         public static final int INSTAGRAM_CODE = 3;
-        public static final int OTHER_NOTIFICATIONS_CODE = 4; // We ignore all notification with code == 4
+        public static final int TELEGRAM_CODE = 4;
+        public static final int OTHER_NOTIFICATIONS_CODE = 5; // We ignore all notification with code == 4
     }
 
     @Override
@@ -55,6 +62,23 @@ public class NotificationListenerExampleService extends NotificationListenerServ
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn){
+//        if (!sbn.getPackageName().equalsIgnoreCase(ApplicationPackageNames.TELEGRAM_PACK_NAME)) {
+//            return;
+//        }
+
+        Notification notification = sbn.getNotification();
+        NotificationCompat.MessagingStyle style = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(notification);
+        if (style == null) {
+            return;
+        }
+
+        // Check only latest message
+        List<NotificationCompat.MessagingStyle.Message> messages = style.getMessages();
+        NotificationCompat.MessagingStyle.Message lastMessage = messages.get(messages.size() - 1);
+        if (lastMessage.getDataMimeType() == null || !lastMessage.getDataMimeType().contains("image")) {
+            return;
+        }
+
         int notificationCode = matchNotificationCode(sbn);
 
         if(notificationCode != InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE){
@@ -97,6 +121,9 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         }
         else if(packageName.equals(ApplicationPackageNames.WHATSAPP_PACK_NAME)){
             return(InterceptedNotificationCode.WHATSAPP_CODE);
+        }
+        else if(packageName.equals(ApplicationPackageNames.TELEGRAM_PACK_NAME)){
+            return(InterceptedNotificationCode.TELEGRAM_CODE);
         }
         else{
             return(InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE);

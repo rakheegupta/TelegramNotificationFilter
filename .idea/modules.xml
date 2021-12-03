@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/notification-listener-service-example.iml" filepath="$PROJECT_DIR$/.idea/modules/notification-listener-service-example.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/notification-listener-service-example.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/notification-listener-service-example.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/TelegramNotificationFilter.iml" filepath="$PROJECT_DIR$/.idea/TelegramNotificationFilter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/TelegramNotificationFilter.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/TelegramNotificationFilter.app.iml" />
     </modules>
   </component>
 </project>

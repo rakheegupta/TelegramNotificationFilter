@@ -85,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
             case NotificationListenerExampleService.InterceptedNotificationCode.WHATSAPP_CODE:
                 interceptedNotificationImageView.setImageResource(R.drawable.whatsapp_logo);
                 break;
+            case NotificationListenerExampleService.InterceptedNotificationCode.TELEGRAM_CODE:
+                interceptedNotificationImageView.setImageResource(R.drawable.ic_telegram_logo);
+                break;
             case NotificationListenerExampleService.InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE:
                 interceptedNotificationImageView.setImageResource(R.drawable.other_notification_logo);
                 break;
