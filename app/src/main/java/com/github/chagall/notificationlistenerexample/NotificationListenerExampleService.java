@@ -1,12 +1,17 @@
 package com.github.chagall.notificationlistenerexample;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import java.util.List;
 
@@ -30,6 +35,10 @@ import java.util.List;
  * SOFTWARE.
  */
 public class NotificationListenerExampleService extends NotificationListenerService {
+
+    private static final String NOTIFICATION_CHANNEL_NAME = "Telegram_Image_Notification";
+    private int notificationId = 1;
+    private long lastNotificationTime = 0;
 
     /*
         These are the package names of the apps. for which we want to
@@ -57,6 +66,7 @@ public class NotificationListenerExampleService extends NotificationListenerServ
 
     @Override
     public IBinder onBind(Intent intent) {
+        createNotificationChannel();
         return super.onBind(intent);
     }
 
@@ -75,10 +85,19 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         // Check only latest message
         List<NotificationCompat.MessagingStyle.Message> messages = style.getMessages();
         NotificationCompat.MessagingStyle.Message lastMessage = messages.get(messages.size() - 1);
+        NotificationCompat.MessagingStyle.Message secondLastMessage = messages.size() == 1? null : messages.get(messages.size() - 2);
         if (lastMessage.getDataMimeType() == null || !lastMessage.getDataMimeType().contains("image")) {
-            return;
+            if (secondLastMessage.getDataMimeType() == null || !secondLastMessage.getDataMimeType().contains("image")) {
+                return;
+            } else {
+                lastMessage = secondLastMessage;
+            }
         }
 
+        if (SystemClock.elapsedRealtime() -  lastNotificationTime > 60000) {
+            lastNotificationTime = SystemClock.elapsedRealtime();
+            updateNotification(lastMessage);
+        }
         int notificationCode = matchNotificationCode(sbn);
 
         if(notificationCode != InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE){
@@ -128,5 +147,34 @@ public class NotificationListenerExampleService extends NotificationListenerServ
         else{
             return(InterceptedNotificationCode.OTHER_NOTIFICATIONS_CODE);
         }
+    }
+
+    private void createNotificationChannel() {
+
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = NOTIFICATION_CHANNEL_NAME;
+            String description = NOTIFICATION_CHANNEL_NAME;
+            NotificationChannel channel = new NotificationChannel(NOTIFICATION_CHANNEL_NAME, name, NotificationManager.IMPORTANCE_MAX);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    private void updateNotification(NotificationCompat.MessagingStyle.Message message) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_NAME)
+                .setSmallIcon(R.drawable.ic_telegram_logo)
+                .setContentTitle("My notification")
+                .setContentText("Much longer text that cannot fit one line...")
+                .setStyle(new NotificationCompat.MessagingStyle("Telegram").addMessage(message))
+                .setPriority(NotificationCompat.PRIORITY_MAX);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.cancelAll();
+        notificationManager.notify(notificationId++, builder.build());
     }
 }
